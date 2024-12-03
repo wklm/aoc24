@@ -1,4 +1,3 @@
-
 input <- "
 27 29 30 33 34 35 37 35
 51 53 54 55 57 60 63 63
@@ -1002,46 +1001,39 @@ input <- "
 9 12 15 18 20 22 25 27"
 
 
-input <- read.table(text = input, fill = TRUE, header = FALSE) |> apply(X=_, MARGIN=1, \(x) x[!is.na(x)])
+input <- read.table(text = input, fill = TRUE, header = FALSE) |>
+  apply(MARGIN = 1, FUN = \(x) x[!is.na(x)])
 
 # part 1
-
-`is strictly monotonic sequence` <- function(x) {
-    return(all(diff(x) > 0) || all(diff(x) < 0))
+is_monotonic_sequence <- function(x) {
+  all(diff(x) > 0) || all(diff(x) < 0)
 }
 
-`abs(diff(seq)) between 1 and 3` <- function(x) {
-    return(all(abs(diff(x)) >= 1 & abs(diff(x)) <= 3))
+has_valid_differences <- function(x) {
+  all(abs(diff(x)) >= 1 & abs(diff(x)) <= 3)
 }
 
-
-input |> 
-    lapply(X=_, FUN= \(x)
-        `is strictly monotonic sequence`(x) &
-        `abs(diff(seq)) between 1 and 3`(x) ) |>
-    unlist() |> 
-    sum() |>
-    print()
-
+input |>
+  lapply(\(x) is_monotonic_sequence(x) && has_valid_differences(x)) |>
+  unlist() |>
+  sum() |>
+  print()
 
 # part 2
-
-
-# Permutations of a vector x with one element removed
-# e.g. x = c(1, 2, 3) -> [[1, 2], [1, 3], [2, 3]]
- `leave-one-out subsets` <- function(x) {
-    return(lapply(X=1:length(x), FUN= \(i) x[-i]))
+get_leave_one_out_subsets <- function(x) {
+  lapply(seq_along(x), FUN = \(i) x[-i])
 }
 
-`predicate fulfield for at least one sub-permutation` <- function(x, predicate) {
-    return(any(sapply(X=`leave-one-out subsets`(x), FUN=predicate)))
+has_valid_subsequence <- function(x, predicate) {
+  any(sapply(get_leave_one_out_subsets(x), FUN = predicate))
 }
 
-input |> 
-    lapply(X=_, FUN= \(x)
-        `predicate fulfield for at least one sub-permutation`(x,
-            `is strictly monotonic sequence`(x) &
-            `abs(diff(seq)) between 1 and 3`(x))) |>
-    unlist() |>
-    sum() |>
-    print()
+input |>
+  lapply(FUN = \(x) {
+    has_valid_subsequence(x, \(y) {
+      is_monotonic_sequence(y) && has_valid_differences(y)
+    })
+  }) |>
+  unlist() |>
+  sum() |>
+  print()
