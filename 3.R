@@ -31,8 +31,8 @@ dont_matches <- gregexpr("don't\\(\\)", input)[[1]]
 enabled <- matches[[1]] |>
   as.vector() |>
   sapply(X = _, \(m) {
-    do <- max(do_matches[do_matches < m], na.rm = TRUE)
-    dont <- max(dont_matches[dont_matches < m], na.rm = TRUE)
+    do <- max(do_matches[do_matches < m])
+    dont <- max(dont_matches[dont_matches < m])
 
     do > dont
   })
