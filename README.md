@@ -1,6 +1,6 @@
 ![Header Image](image.png)
 
-# day 1
+# day 1 ⭐⭐
 
 ```R
 input <- read.table(text = input, header = FALSE)
@@ -15,7 +15,7 @@ abs(c1 - c2) |> sum() |> print()
 c1 |> unique() |> sapply(\(x) x * sum(c2 == x)) |> sum() |> print()
 ```
 
-# day 2
+# day 2 ⭐⭐
 
 ```R
 input <- read.table(text = input, fill = TRUE, header = FALSE) |>
@@ -56,7 +56,7 @@ input |>
   print()
 ```
 
-# day 3
+# day 3 ⭐⭐
 
 ```R
 # part 1
@@ -95,7 +95,7 @@ multiplications[enabled] |>
   print()
 ```
 
-# day 4
+# day 4 ⭐⭐
 
 ```R
 # part 1
@@ -191,7 +191,7 @@ m |>
   print()
 ```
 
-# day 5
+# day 5 ⭐⭐
 
 ```R
 rules <- input[[1]] |>
