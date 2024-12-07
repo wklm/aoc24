@@ -246,27 +246,11 @@ corrected[!is_correct] |>
 
 # day 6 ⭐⭐
 
+![obstacles](output.gif)
+
+
 ```R
 m <- do.call(rbind, strsplit(readLines("day6input.txt"), ""))
-
-
-plot_area <- function(area) {
-  area <- area |> as.data.frame()
-  area |>
-    rownames() |>
-    print()
-  area |>
-    colnames() |>
-    print()
-  area |> apply(2, \(x) paste(x, collapse = ""))
-
-  plot(1, type = "n", xlim = c(1, ncol(area)), ylim = c(1, nrow(area)))
-  for (i in 1:nrow(area)) {
-    for (j in 1:ncol(area)) {
-      text(j, i, area[i, j])
-    }
-  }
-}
 
 
 # part 1
