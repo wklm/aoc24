@@ -246,8 +246,7 @@ corrected[!is_correct] |>
 
 # day 6 ⭐⭐
 
-![obstacles](output.gif)
-
+![obstacles]( animation_day6.gif)
 
 ```R
 m <- do.call(rbind, strsplit(readLines("day6input.txt"), ""))
