@@ -119,18 +119,6 @@ record HikingMap() {
             return neighbors;
 
         }
-
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < rows.length; i++) {
-                for (int j = 0; j < rows[i].length; j++) {
-                    sb.append(rows[i][j]);
-                }
-                sb.append("\n");
-            }
-            return sb.toString();
-        }
     }
 
     public HikingMap(String input) {
@@ -150,8 +138,10 @@ record HikingMap() {
     NaryTree getPaths(Point point) {
         var paths = new LinkedList<NaryTree>();
 
-        var nextSteps = grid.getNeighbors(point).stream().filter(
-                n -> grid.get(n.coordinates()).value() == point.value() + 1)
+        var nextSteps = grid
+                .getNeighbors(point)
+                .stream()
+                .filter(n -> grid.get(n.coordinates()).value() == point.value() + 1)
                 .toList();
 
         for (var nextStep : nextSteps) {
@@ -175,7 +165,6 @@ record HikingMap() {
                 score += peaks.count();
             }
         }
-
         return score;
     }
 }
