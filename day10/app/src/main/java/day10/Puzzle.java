@@ -15,8 +15,7 @@ import java.util.stream.Collectors;
 
 
 class HikingMap {
-    Grid grid;
-
+    static Grid grid;
     static record Point(int x, int y, int value) {
     }
 
