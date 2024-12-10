@@ -1,192 +1,184 @@
 package day10;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-record HikingMap() {
-    static Grid grid;
+import org.checkerframework.checker.units.qual.t;
 
-    record Point(Integer[] coordinates, Integer value) {
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            sb.append("(");
-            for (int i = 0; i < coordinates.length; i++) {
-                sb.append(coordinates[i]);
-                if (i < coordinates.length - 1) {
-                    sb.append(", ");
-                }
-            }
-            sb.append(") -> ").append(value);
-            return sb.toString();
-        }
+class HikingMap {
+    Grid grid;
+
+    static record Point(int x, int y, int value) {
     }
 
-    record NaryTree(Point point, LinkedList<NaryTree> children) {
-        static NaryTree root;
+    static class NaryTree {
+        final protected Point point;
+        final List<NaryTree> children;
 
-        NaryTree addChild(Point point) {
-            var child = new NaryTree(point, new LinkedList<>());
-            children.add(child);
-            return child;
+        NaryTree(Point point, List<NaryTree> children) {
+            this.point = point;
+            this.children = Collections.unmodifiableList(new LinkedList<>(children));
         }
 
-        List<NaryTree> getLeafs() {
-            return getLeafs(new LinkedList<>());
-        }
-
-        List<NaryTree> getLeafs(LinkedList<NaryTree> leafs) {
-            if (!children.isEmpty()) {
-                for (var child : children) {
-                    child.getLeafs(leafs);
-                }
+        List<NaryTree> getLeaves() {
+            if (children.isEmpty()) {
+                return List.of(this);
             } else {
-                leafs.add(this);
+                var leaves = new LinkedList<NaryTree>();
+                for (var child : children) {
+                    leaves.addAll(child.getLeaves());
+                }
+                return leaves;
             }
-            return leafs;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (!(obj instanceof NaryTree)) {
+                return false;
+            }
+            NaryTree other = (NaryTree) obj;
+            return point.equals(other.point);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(point);
         }
     }
 
-    record Grid() {
+    static class Grid {
+        private final Point[][] rows;
+        private final Map<Integer, List<Point>> locations = new HashMap<>();
 
-        static Point[][] rows;
-        static HashMap<Integer, List<Point>> locations = new HashMap<>();
-
-        public Grid(String input) {
-            this();
-
-            var lines = input.split("\n");
+        Grid(String input) {
+            String[] lines = input.split("\n");
             rows = new Point[lines.length][];
 
             for (int i = 0; i < lines.length; i++) {
-                var line = lines[i];
-                var numbers = line.split("");
+                String line = lines[i];
+                char[] numbers = line.toCharArray();
                 Point[] row = new Point[numbers.length];
                 for (int j = 0; j < numbers.length; j++) {
-                    int val = Integer.parseInt(numbers[j]);
-                    row[j] = new Point(new Integer[] { i, j }, val);
-                    Point p = new Point(new Integer[] { i, j }, val);
-
-                    if (locations.containsKey(val)) {
-                        locations.get(val).add(p);
-                    } else {
-                        locations.put(val, new LinkedList<>());
-                        locations.get(val).add(p);
-                    }
+                    int val = Character.getNumericValue(numbers[j]);
+                    Point p = new Point(i, j, val);
+                    row[j] = p;
+                    locations.computeIfAbsent(val, k -> new LinkedList<>()).add(p);
                 }
                 rows[i] = row;
             }
         }
 
-        Point get(Integer[] coords) {
-            return rows[coords[0]][coords[1]];
+        Point get(int x, int y) {
+            if (x < 0 || x >= rows.length || y < 0 || y >= rows[0].length) {
+                throw new IndexOutOfBoundsException();
+            }
+            return rows[x][y];
         }
 
-        Integer[] dim() {
-            return new Integer[] { rows.length, rows[0].length };
+        int[] dim() {
+            return new int[] { rows.length, rows[0].length };
         }
 
         List<Point> find(int value) {
-            return locations.get(value);
+            return locations.getOrDefault(value, Collections.emptyList());
         }
 
         List<Point> getNeighbors(Point point) {
-            var neighbors = new LinkedList<Point>();
-            int x = point.coordinates()[0];
-            int y = point.coordinates()[1];
-            Integer[] dim = dim();
-            int rows = dim[0];
-            int cols = dim[1];
+            List<Point> neighbors = new LinkedList<>();
+            int x = point.x();
+            int y = point.y();
+            int[] dimensions = dim();
+            int nRows = dimensions[0];
+            int nCols = dimensions[1];
 
-            if (x - 1 >= 0) {
-                Integer[] coords = new Integer[] { x - 1, y };
-                neighbors.add(new Point(coords, get(coords).value()));
-            }
-            if (x + 1 < rows) {
-                Integer[] coords = new Integer[] { x + 1, y };
-                neighbors.add(new Point(coords, get(coords).value()));
-            }
-            if (y - 1 >= 0) {
-                Integer[] coords = new Integer[] { x, y - 1 };
-                neighbors.add(new Point(coords, get(coords).value()));
-            }
-            if (y + 1 < cols) {
-                Integer[] coords = new Integer[] { x, y + 1 };
-                neighbors.add(new Point(coords, get(coords).value()));
-            }
+            if (x - 1 >= 0)
+                neighbors.add(get(x - 1, y));
+            if (x + 1 < nRows)
+                neighbors.add(get(x + 1, y));
+            if (y - 1 >= 0)
+                neighbors.add(get(x, y - 1));
+            if (y + 1 < nCols)
+                neighbors.add(get(x, y + 1));
+
             return neighbors;
-
         }
     }
 
     public HikingMap(String input) {
-        this();
         grid = new Grid(input);
     }
 
     List<NaryTree> getTrailheads() {
         var zeros = grid.find(0);
-        var trailheads = new LinkedList<NaryTree>();
-        for (var zero : zeros) {
-            trailheads.add(getPaths(zero));
-        }
-        return trailheads;
+        return zeros
+                .stream()
+                .map(this::getPaths)
+                .collect(
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                Collections::unmodifiableList));
     }
 
     NaryTree getPaths(Point point) {
-        var paths = new LinkedList<NaryTree>();
-
         var nextSteps = grid
                 .getNeighbors(point)
                 .stream()
-                .filter(n -> grid.get(n.coordinates()).value() == point.value() + 1)
-                .toList();
+                .filter(
+                        n -> grid.get(n.x, n.y).value() == point.value() + 1)
+                .collect(Collectors.toList());
 
-        for (var nextStep : nextSteps) {
-            paths.add(getPaths(nextStep));
-        }
+        List<NaryTree> paths = nextSteps.stream()
+                .map(this::getPaths)
+                .collect(Collectors.toList());
 
-        return new NaryTree(grid.get(point.coordinates()), paths);
+        return new NaryTree(grid.get(point.x, point.y), paths);
     }
 
-    Integer getScore(boolean distinct) {
-        int score = 0;
-        for (var trailhead : getTrailheads()) {
-            var peaks = trailhead
-                    .getLeafs()
-                    .stream()
-                    .filter(l -> l.point().value() == 9);
-
-            if (distinct) {
-                score += peaks.distinct().count();
-            } else {
-                score += peaks.count();
-            }
-        }
-        return score;
+    int getScore(boolean distinct) {
+        return getTrailheads().stream()
+                .mapToInt(trailhead -> {
+                    var peaks = trailhead
+                            .getLeaves()
+                            .stream()
+                            .filter(l -> l.point.value() == 9);
+                    return distinct
+                            ? (int) peaks.distinct().count()
+                            : (int) peaks.count();
+                })
+                .sum();
     }
 }
 
 record Puzzle(String input) {
-    static String getInput() {
-        File file = new File("input.txt");
-        try {
-            return new String(java.nio.file.Files.readAllBytes(file.toPath()));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "";
+    static String getInput() throws IOException {
+        Path path = Paths.get("input.txt");
+        return Files.readString(path);
     }
 
     public static void main(String[] args) {
-        var map = new HikingMap(Puzzle.getInput());
-
-        // part 1
-        System.out.println(map.getScore(true));
-
-        // part 2
-        System.out.println(map.getScore(false));
+        try {
+            var map = new HikingMap(Puzzle.getInput());
+            // part 1
+            System.out.println(map.getScore(true));
+            // part 2
+            System.out.println(map.getScore(false));
+        } catch (IOException e) {
+            System.err.println(e.getMessage());
+            System.exit(1);
+        }
     }
 }
