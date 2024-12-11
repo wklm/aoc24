@@ -836,18 +836,13 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-class PlutonianPebbles {
-    static class Stone {
-        private static int digitCount(long i) {
-            int count = 0;
-            do {
-                count++;
-                i /= 10;
-            } while (i > 0);
-            return count;
+final class PlutonianPebbles {
+    final static class Stone {
+        private static final int digitCount(long i) {
+            return (int) Math.log10(i) + 1; 
         }
 
-        static long[] transform(long stone) {
+        static final long[] transform(long stone) {
             if (stone == 0) {
                 return new long[]{1};
             }
@@ -861,8 +856,7 @@ class PlutonianPebbles {
     }
 
     static Map<Long, Long> getStones(String input) {
-        return Arrays.stream(input.split(" "))
-                .filter(s -> !s.isBlank())
+        return Arrays.stream(input.split("\\s+"))
                 .map(Long::parseLong)
                 .collect(Collectors.groupingBy(
                         Function.identity(),
@@ -871,16 +865,16 @@ class PlutonianPebbles {
 
     static Map<Long, Long> blink(Map<Long, Long> stones) {
         Map<Long, Long> newStones = new HashMap<>();
-        for (var entry : stones.entrySet()) {
-            for (long s : Stone.transform(entry.getKey())) {
-                newStones.merge(s, entry.getValue(), Long::sum);
+        stones.forEach((stone, count) -> {
+            for (long transformed : Stone.transform(stone)) {
+                newStones.merge(transformed, count, Long::sum);
             }
-        }
+        });
         return newStones;
     }
 }
 
-record Puzzle(String input) {
+final record Puzzle(String input) {
     static String getInput() throws IOException {
         Path path = Paths.get("input.txt");
         return Files.readString(path);
